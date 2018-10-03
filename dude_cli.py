@@ -16,7 +16,7 @@ if __name__ == '__main__':
     print('\n\nReading projects')
     dude.readProjects()
     print('\nCreating a project')
-    prj = dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj2', method='default'   )
+    prj = dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj', method='default'   )
     # print ('\nReading projects again')
     # dude.readProjects()
 

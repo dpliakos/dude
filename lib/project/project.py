@@ -1,6 +1,7 @@
 import os
 import yaml
 from ..utils.yaml_parser import YamlParser
+from ..variable.variable import Variable
 
 class Project():
     def __init__(self, name, path, init):
@@ -60,15 +61,17 @@ class Project():
         if "hooks" in file:
             self.gitHooks = file["hooks"]
         if "variables" in file:
-            self.variables = file["variables"]
+            for variable in file['variables']:
+                var = Variable(variable, file['variables'][variable])
+                self.variables.append(var)
 
         self.initialized = True
 
     def create(self):
-        # if not self.isFileCreated:
-        data = self.getProject()
-        yaml = YamlParser()
-        yaml.write(path=self.filePath, content=data)
+        if not self.isFileCreated:
+            data = self.getProject()
+            yaml = YamlParser()
+            yaml.write(path=self.filePath, content=data)
 
     def readFile(self):
         print  ('reading the configuration file')
@@ -81,14 +84,14 @@ class Project():
         project = self.getProject()
         projectId = db.insert('projects', project)
 
-        for variable in self.variables:
-
-            bundle = {
-                "title": variable,
-                "value": self.variables[variable],
-                "project": str(projectId)
-            }
-            db.insert('variables', bundle)
+        # for variable in self.variables:
+        #
+        #     bundle = {
+        #         "title": variable,
+        #         "value": self.variables[variable],
+        #         "project": str(projectId)
+        #     }
+        #     db.insert('variables', bundle)
 
         for hook in self.gitHooks:
             bundle = {
@@ -97,6 +100,9 @@ class Project():
             }
 
             db.insert('githook_assignments', bundle)
+
+    def addVariable(self, title, value):
+        pass
 
     def setup(self):
         pass

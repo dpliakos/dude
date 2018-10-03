@@ -1,0 +1,7 @@
+hook_roles:
+  - pre-commit
+  - pre-push
+
+init_methods:
+  - docker-trivial
+  - local

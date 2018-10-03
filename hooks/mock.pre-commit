@@ -1,0 +1,5 @@
+#!usr/bin/python
+
+print ('This is a mock pre commit. Everything went well!')
+
+exit(0)

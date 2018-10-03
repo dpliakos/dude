@@ -1,0 +1,39 @@
+hook_roles:
+  id: integer primary key
+  title: string
+
+git_hooks:
+  id: integer primary key
+  name: string
+  role: string
+
+init_type:
+  id: integer primary key
+  title: string
+
+init_methods:
+  id: integer primary key
+  title: string
+  type: int
+
+projects:
+  id: integer primary key
+  name: string
+  path: string unique
+  init: int
+
+githook_assignments:
+  id: integer primary key
+  project: int
+  hook: int
+
+variables:
+  id: integer primary key
+  title: string
+  value: string
+  project: int
+
+init_depedancy:
+  id: int
+  init_methods: int
+  varible: string

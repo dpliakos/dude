@@ -1,0 +1,596 @@
+#!/bin/bash
+
+# flags
+# 1: true
+# 0: false
+
+# if dev=1 assumes that tehere is a drupal installation and skip the composer instlal phase
+dev=0
+
+repo=base-naked-theme
+basetheme="https://dpliakos@bitbucket.org/pointblank_gr/point-blank-website-theme.git"
+basetheme="git@bitbucket.org:pointblank_gr/base-naked-theme.git"
+basetheme=https://dpliakos@bitbucket.org/pointblank_gr/base-naked-theme.git
+basetheme=git@bitbucket.org:pointblank_gr/base-naked-theme.git
+
+moduleRepo=git@bitbucket.org:pointblank_gr/pb_base_modules.git
+
+# set functions
+
+# print to STDOUT
+function log() {
+  echo -e "$tag $1">&1
+}
+
+# print to STDERR
+function error() {
+  tput setaf 1
+  echo -e "$tag $1">&2
+  tput sgr0
+}
+
+# params
+# $1: confirm
+# $2: message
+function userInput() {
+  hasDefault=$1
+  shift 1
+
+  if [ $hasDefault -gt 0 ]; then
+    default=$1
+    shift 1
+  fi
+
+  question="$@"
+
+  if [ $hasDefault -gt 0 ]; then
+    echo -n "$tag $1 (default: $default ): "
+  else
+    echo -n "$tag $1 : "
+  fi
+
+  read result
+  emptyTest=`echo $result | sed "s/\ //g"`
+  result=`echo $result | sed "s/\ /_/g"`
+
+  if [ "$emptyTest" == "" ]; then
+    result=$default
+  fi
+}
+
+# params
+# $1: confirm
+# $2: message
+function oldUserInput() {
+  confirm=$1
+  shift 1
+  question="$@"
+  echo -n "$1: "
+  read result
+
+  if [ $confirm -eq 1 ]; then
+    echo -n "$tag Is it ok ?(Y/n): "
+    read choise
+
+    if [ "$choise" == "n" ]; then
+      userInput 1 "$question"
+    fi
+  fi
+}
+
+# params command to search with which
+function testPackage() {
+  packageSum=$(( $packageSum + 1))
+  code=$2
+  echo -ne "[depedence test] searching $1"
+  which $1 > /dev/null 2>/dev/null
+  result=$?
+  if [ ! $result -eq 0  ]; then
+    tput setaf 1
+    echo -e "\t[ERROR]\n"
+    tput sgr0
+  else
+    tput setaf 2
+    echo -e "\t[OK]"
+    tput sgr0
+    realSum=$(( $realSum + 1 ))
+  fi
+}
+
+# For user scope cammands
+function testPackageByDir() {
+  packageSum=$(( $packageSum + 1))
+  echo -ne "[depedence test] searching $1"
+  if [ -d $2 ]; then
+    result=0
+  else
+    result=1
+  fi
+
+  result=$?
+  if [ ! $result -eq 0  ]; then
+    tput setaf 1
+
+    echo -e "\t[ERROR]\n"
+
+  else
+    tput setaf 2
+    echo -e "\t[OK]"
+    tput sgr0
+    realSum=$(( $realSum + 1 ))
+  fi
+}
+
+# For php packages
+# params: package. waits php- prefix
+# e.g. php-xml, php-mysql etc.
+function testPhpPackage() {
+  packageSum=$(( $packageSum + 1))
+  dep=`echo $1 | cut -d "-" -f 2 `
+  echo -ne "[depedence test] searching $1"
+  test=`php -m | egrep $dep | wc -l`
+  result=$test
+  if [ ! $result -gt 0  ]; then
+    tput setaf 1
+
+    echo -e "\t[ERROR]"
+    tput sgr0
+  else
+    tput setaf 2
+    echo -e "\t[OK]"
+    tput sgr0
+    realSum=$(( $realSum + 1 ))
+  fi
+
+}
+
+# source enviroment variables
+function loadEnviroment() {
+  source ~/.nvm/nvm.sh >/dev/null 2>/dev/null
+  source ~/.profile >/dev/null 2>/dev/null
+  source ~/.bashrc >/dev/null 2>/dev/null
+  source $(brew --prefix nvm 2>/dev/mull)/nvm.sh >/dev/null 2>/dev/null
+}
+
+# write the services.yml
+function overrideservices() {
+  echo "# Local development services.">./web/sites/development.services.yml
+  echo "#">>./web/sites/development.services.yml
+  echo "# To activate this feature, follow the instructions at the top of the">>./web/sites/development.services.yml
+  echo "# 'example.settings.local.php' file, which sits next to this file.">>./web/sites/development.services.yml
+  echo "parameters:">>./web/sites/development.services.yml
+  echo "  http.response.debug_cacheability_headers: true">>./web/sites/development.services.yml
+  echo "  twig.config:">>./web/sites/development.services.yml
+  echo "    debug: true">>./web/sites/development.services.yml
+  echo "    auto_reload: true">>./web/sites/development.services.yml
+  echo "    cache: false">>./web/sites/development.services.yml
+  echo "services:">>./web/sites/development.services.yml
+  echo "  cache.backend.null:">>./web/sites/development.services.yml
+  echo "    class: Drupal\Core\Cache\NullBackendFactory">>./web/sites/development.services.yml
+}
+
+# update the settings.php
+function overrideSettings() {
+  settingsfile="./web/sites/default/settings.php"
+  echo -e "\n\n" >> $settingsfile
+  echo 'if (file_exists($app_root . "/" . $site_path . "/settings.local.php")) {' >> $settingsfile
+  echo '  include $app_root . "/" . $site_path . "/settings.local.php";'>> $settingsfile
+  echo "}">> $settingsfile
+}
+
+function printLogo() {
+  log 'MMMMMMMMMMMMMMMMMMMMNO$I???????????IZDMMMMMMMMMMMMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMMMMMO7??+++++++++++++++++++??78MMMMMMMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMN7?+++++++++++++++++++++++++++?+?$MMMMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMI++++++++++++++++++++++++++++++++?7DMMMMMMMMMMMM'
+  log 'MMMMMMMMMM7?+++++++++++++++??Z?++++++++++++++++?ZMMMMMMMMMMM'
+  log 'MMMMMMMM7?++++++++++++++++?INMO?++++++++++++++++??ZMMMMMMMMM'
+  log 'MMMMMMM$?++++++++++++++++??OMMM7?++++++++++++++++??OMMMMMMMM'
+  log 'MMMMMO??+++++++++++++++++7MMMMMMDI?++++++++++++++++?INMMMMMM'
+  log 'MMMM$?++++++++++++++++++NMMMMMMMMM8?++++++++++++++++??8MMMMM'
+  log 'MMM$?+++++++++++++++++7DMMMMMMMMMMMMI?++++++++++++++++?OMMMM'
+  log 'MM8?+++++++++++++++++7NMMMMMMMMMMMMM8??+++++++++++++++?INMMM'
+  log 'MN?+++++++++++++++?IDMMMMMMMMMMMMMMMMM8??++++++++++++++?7NMM'
+  log 'MI?+++++++++++++??8MMMMMMMMMMMMMMMMMMMMMZ?++++++++++++++?ZMM'
+  log 'D?++++++++++++++?ZMMMMMMMMMMMMMMMMMMMMMMMI?+++++++++++++?7MM'
+  log '7?++++++++++++??DMMMMMMMMMMMMMMMMMMMMMMMMMO?++++++++++++++8M'
+  log '?++++++++++++?IDMMMMMMMMMMMMMMMMMMMMMMMMMMM8?++++++++++++?$M'
+  log '?++++++++++++?ZMMMMMMMMMMMMMMMMDDNMMMMMMMMMM7?+++++++++++?7M'
+  log '++++++++++++?7NMMMMMM++++?78MMM++ZMMMMMMMMMMD?++++++++++++IM'
+  log '+++++++++++++OMMMMMMM++ZND7++NM++ZMMMMMMMMMMM7?+++++++++++IM'
+  log '++++++++++++?8MMMMMMM++ZMMM++OM++??+IOMMMMMMMZ?+++++++++++IM'
+  log '?+++++++++++?8MMMMMMM++ZMN$++DM++?DN++NMMMMMMZ?+++++++++++7M'
+  log '?++++++++++++OMMMMMMM+++++?ZMMM++ZMM++OMMMMMM7?+++++++++++OM'
+  log 'O?++++++++++?7MMMMMMM++ZMMMMMMM++ZMM++8MMMMMN?++++++++++?IDM'
+  log 'D?++++++++++?IDMMMMMM++ZMMMMMMM++?DN++NMMMMMO?++++++++++?7NM'
+  log 'MZ?++++++++++?7NMMMMM++ZMMMMMMM++O7?ZMMMMMMD?++++++++++??DMM'
+  log 'MM7+++++++++++?IDMMMMMMMMMMMMMMMMMMMMMMMMM8?+++++++++++?OMMM'
+  log 'MMD?+++++++++++?7NMMMMMMMMMMMMMMMMMMMMMMMD?+++++++++++?7NMMM'
+  log 'MMMD??++++++++++??OMMMMMMMMMMMMMMMMMMMMM7?+++++++++++?7NMMMM'
+  log 'MMMMNI+++++++++++++?7DMMMMMMMMMMMMMMMOI+++++++++++++?$MMMMMM'
+  log 'MMMMMMZ?+++++++++++++++?ONMMMMMMMDZI++++++++++++++??DMMMMMMM'
+  log 'MMMMMMM$++++++++++++++++??I7777I????+++++++++++++??OMMMMMMMM'
+  log 'MMMMMMMMM7?++++++++++++++++++++++++++++++++++++++ZMMMMMMMMMM'
+  log 'MMMMMMMMMMNZ?+++++++++++++++++++++++++++++++++??MMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMI?++++++++++++++++++++++++++++++++7DMMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMMM87+??++++++++++++++++++++++??$DMMMMMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMMMMMMN8$I+?+?+++++++++?+??IZDMMMMMMMMMMMMMMMMMMM'
+  log 'MMMMMMMMMMMMMMMMMMMMN8Z7?+++++++++?IZDNMMMMMMMMMMMMMMMMMMMMM'
+}
+
+# preperation
+if [ ! -d logs ]; then
+  mkdir logs
+fi
+logpath="$PWD/logs"
+
+tput sgr0
+# checking for the requirements
+echo "--------------------------------"
+echo "Installation guide for drupal 8"
+echo -e "--------------------------------\n"
+
+
+tag="[depedence test]"
+loadEnviroment
+
+packageSum=0
+realSum=0
+testPackage 'git'
+testPackage 'composer'
+testPackage 'drush'
+testPackage 'mysql'
+testPackage 'zip'
+testPackage 'unzip'
+testPackage 'npm'
+testPackageByDir 'nvm' "$NVM_DIR"
+testPhpPackage 'php-mysql'
+testPhpPackage 'php-xml'
+testPhpPackage 'php-xmlreader'
+testPhpPackage 'php-xmlwriter'
+testPhpPackage 'php-gd'
+testPhpPackage 'php-zip'
+testPhpPackage 'php-mbstring'
+testPhpPackage 'php-curl'
+
+result=$(($packageSum - $realSum ))
+
+if [ ! $result -eq 0 ]; then
+  error "Some depedences are not found."
+  error "Please install them and try again"
+  exit 1
+fi
+
+# get information from user
+echo -e "\n"
+
+tag="[User info]"
+userInput 0 "Give the project name"
+sitename=$result
+
+# composer create-project will fail if there is a non-empty directory with the site name
+if [ $dev -eq 0 ]; then
+  if [ -d $sitename ]; then
+    contents=`ls $sitename | wc -l`
+    if [ ! $contents -eq 0 ]; then
+      tput setaf 1
+      echo -e "\n$tag directory $PWD/$sitename exists and has contents, choose another folder"
+      tput sgr0
+      exit 1
+    fi
+  fi
+fi
+
+userInput 0 "Theme git repository"
+repo=$result
+
+currentEmail=`git config --list | egrep "email" | cut -d "=" -f2`
+
+if [ "$currentEmail" == " " ]; then
+  noEmail=1
+else
+  noEmail=0
+fi
+
+if [ $noEmail -eq 1 ]; then
+  userInput 0 "User email"
+else
+  userInput 1 "$currentEmail" "User email"
+fi
+email=$result
+
+
+
+# MYSQL setup
+echo ""
+tag="[mysql setup]"
+userInput 1 "root" "mysql user"
+mysqluser=$result
+userInput 1 "root" "mysql password"
+mysqlpass=$result
+userInput 1 "127.0.0.1" "mysql host"
+mysqlhost=$result
+
+log "\n"
+
+#check bitbucket access
+
+errorCheck=0
+tag="[acccess test]"
+echo -n "$tag Checking user access to $basetheme"
+git ls-remote $basetheme >./module_git_output 2>theme_git_output
+themeGitaccess=$?
+
+if [ ! $themeGitaccess -eq 0 ]; then
+  tput setaf 1
+  echo -e "\t[ERROR]"
+  tput sgr0
+  errorCheck=$(( $errorCheck + 1))
+else
+  tput setaf 2
+  echo -e "\t[OK]"
+  tput sgr0
+fi
+
+
+echo -n "$tag Checking user access to $moduleRepo"
+git ls-remote $moduleRepo >./module_git_output 2>module_git_output
+modulegitaccess=$?
+
+if [ ! $modulegitaccess -eq 0 ]; then
+  tput setaf 1
+  echo -e "\t[ERROR]"
+  tput sgr0
+  errorCheck=$(( $errorCheck + 1))
+else
+  tput setaf 2
+  echo -e "\t[OK]"
+  tput sgr0
+fi
+
+# check mysql access
+sqlerrorCheck=0
+mysqlurl="mysql://$mysqluser:$mysqlpass@$mysqlhost/$sitename"
+
+echo -n "$tag Checking user access to $mysqlurl"
+mysql -u $mysqluser  -p$mysqlpass -h $mysqlhost  -e ";" 2>temp_mysql_output
+mysqlaccess=$?
+
+if [ ! $mysqlaccess -eq 0 ]; then
+  tput setaf 1
+  echo -e "\t[ERROR]"
+  tput sgr0
+  sqlerrorCheck=1
+else
+  tput setaf 2
+  echo -e "\t[OK]"
+  tput sgr0
+fi
+
+if [ $errorCheck -gt 0 ]; then
+  error ""
+  error "Could not access bitbucket via ssh"
+  error "Ensure that the ssh keys are set correctly and try again"
+fi
+
+if [ $sqlerrorCheck -gt 0 ]; then
+  error ""
+  error "Could not access mysql"
+fi
+
+rm ./theme_git_output
+rm ./module_git_output
+rm ./temp_mysql_output
+
+if [ $errorCheck -gt 0 ]; then
+  exit 2
+fi
+
+if [ $sqlerrorCheck -gt 0 ]; then
+  exit 3
+fi
+
+
+# proceed with the intatllation
+tag="[Drupal core Install]"
+log ""
+log "d8: Installing drupal 8 site: '$sitename' that will be the name of the folder and the db"
+log "this might take a while"
+if [ $dev -eq 0 ]; then
+  composer create-project drupal-composer/drupal-project:8.x-dev $sitename --stability dev --no-interaction #2>composer-create-project.error ##| egrep "- Installing"
+  createProject=$?
+else
+  createProject=0
+fi
+
+if [ ! $createProject -eq 0 ]; then
+  tag="[composer error log]"
+  tput setaf 1
+
+  error "Error while executing composer create-project"
+  error "Output from logs: "
+
+  while read line; do
+    echo "$tag $line"
+  done < composer-create-project.error
+  tput sgr0
+
+  error -e "\nFind out put logs at: "
+  error "$PWD/composer-create-project.log"
+  error "$PWD/composer-create-project.error"
+
+  error "$tag There was some errors while executing composer create-project"
+  userInput 1 "n" "Do you want to continue? (y/n)"
+
+  tag="[installation]"
+  if [ ! $result == "y" ]; then
+    exit 1
+  fi
+else
+  tag="[installation]"
+fi
+
+tag="[Composer depedences install]"
+if [ $dev -eq 0 ]; then
+  echo "$tag Installing composer depedences"
+  cd ./$sitename
+  composer require drupal/admin_toolbar drupal/components drupal/entity_pager drupal/metatag drupal/views_linkarea drupal/draggableviews drupal/paragraphs drupal/browsersync drupal/devel drupal/pathauto drupal/redirect drupal/rabbit_hole drupal/features drupal/config_update
+  cd ./../
+fi
+
+cd "./$sitename/web/themes"
+
+git clone $basetheme
+mv ./base-naked-theme ./pb
+
+cd ./pb
+rm -rf .git
+
+tag="[Third party modules]"
+
+log "use The correct node version"
+
+nvm use
+
+log "install node modules"
+npm install
+
+tag="[git repository]"
+log "initialize git repository"
+git init
+git add .
+git commit -m "Initial Commit" > /dev/null
+log "initial commit created"
+
+log "updating local remotes"
+repo=`echo $repo | sed "s/\ //g"`
+
+if [ ! "$repo" == "" ]; then
+  git remote add origin $repo
+fi
+
+#reset directory
+cd ./../../../..
+
+tag="[Module update]"
+cd ./$sitename/web/modules/
+
+if [ ! -d ./custom ]; then
+  mkdir ./custom
+fi
+cd ./custom
+
+log "Clone modules"
+git clone $moduleRepo
+cd ./../../../../
+
+cd ./$sitename
+$tag="[Drupal initialize]"
+log ""
+log "Initializing dupal via drush"
+log "This might take a while"
+log "running drush site-install --db-url=$mysqlurl  --account-name="admin" --account-pass="admin" -y"
+drush site-install --db-url=$mysqlurl  --account-name="admin" --account-pass="admin" -y
+# drush site-install --db-url=$mysqlurl  --account-name="admin" --account-pass="admin" -y
+drupalinit=$?
+
+if [ ! $drupalinit -eq 0 ]; then
+  error ""
+  error"There was errors during drupal initialization">&2
+  error "Your drupal installation is completed, but not initialized">&2
+  error "You can run again the script or drop and initialize manually yout installation">&2
+  exit 4
+fi
+
+tag="[Drush depedences install]"
+log ""
+log "Enabling drupal modules"
+drush en token components admin_toolbar entity_pager metatag views_linkarea draggableviews paragraphs browsersync pathauto redirect rabbit_hole features config_update -y
+
+
+log "Set drupal to development state"
+log "Unlocking settings.php"
+chmod 755 ./web/sites/default
+chmod 755 ./web/sites/example.settings.local.php
+chmod 755 ./web/sites/default/settings.php
+
+log "Copy the settings.php"
+mv ./web/sites/example.settings.local.php  ./web/sites/default/settings.local.php
+
+log "Change development.services.yml"
+overrideservices
+log "update settings"
+overrideSettings
+
+log "Locking again settings.php"
+chmod 444 web/sites/default/settings.php
+chmod 555 ./web/sites/default
+
+log ""
+log ""
+tput setaf 4
+tag="[Complete]"
+printLogo
+
+tput setaf 2
+log " "
+log " "
+log "We are done!"
+log "Drupal installation completed."
+log "Username: admin"
+log "password: admin"
+tput sgr0
+
+
+
+
+# checking if everything is ok
+# need instructions for that
+
+#
+# echo "d8: Installing drupal 8 site: $1 that will be the name of the folder and the db"
+# composer create-project drupal-composer/drupal-project:8.x-dev $1 --stability dev --no-interaction
+# echo ">>>> D8: Composer done for drupal, proceeding with modules"
+# cd $1
+# composer require drupal/admin_toolbar drupal/components drupal/entity_pager drupal/metatag drupal/views_linkarea drupal/draggableviews drupal/paragraphs drupal/browsersync drupal/devel drupal/pathauto drupal/redirect drupal/rabbit_hole
+# echo ">>>> D8: Composer done for modules, proceeding with theme"
+# cd web/themes
+# git clone git@bitbucket.org:pointblank_gr/point-blank-website-theme.git pb
+# cd pb
+# nvm use
+# echo ">>>> D8: Done cloning theme, time for node modules, go smoke a cigarette!"
+# npm install
+# rm -rf .git
+# cd ../../../
+# git init
+# git add .
+# git commit -m "Initial Commit"
+# drush site-install --db-url=mysql://root:root@localhost/$1
+# drush en components admin_toolbar  entity_pager metatag views_linkarea draggableviews paragraphs browsersync pathauto redirect rabbit_hole
+# mv sites/settings.local.php sites/default/settings.local.php
+# echo ">>>> D8: We are done!"
+
+
+# composer require drupal/components drush en components
+
+# php-mysql
+# mysql-client
+#php-xml
+#  install php-xml
+# mbstring
+#  apt-get install php-mbstring
+# apt-get install php7.0-curl
+
+
+
+# web/modules/`mkdir custom`
+
+# php-xml
+# php-gd
+# zip
+# unzip
+# php-zip
+
+
+# docker service apache2 start
+# docker extension=php_pdo_mysql.dll >> php.ini

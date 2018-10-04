@@ -5,7 +5,7 @@ class Variable:
 
     def __repr__(self):
         name  = '{}'.format(self.name)
-        string = '{} = {}'.format(name, self.value)
+        string = '{}: {}'.format(name, self.value)
         return string
 
     def getName(self):

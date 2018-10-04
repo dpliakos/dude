@@ -14,6 +14,7 @@ class Dude:
         self.db = DBManager(self.dbName)
         self.installed = True
         self.projects = []
+        self.activeProject = None
 
     def checkInstallation(self):
         return self.installed
@@ -45,10 +46,13 @@ class Dude:
         yml = YamlParser()
 
         dbStructure = yml.read(self.dbconfiguration)
-        content = self.db.preview('projects')
+        content = self.db.preview('projects', ['name', 'path'])
         if len(content) > 0:
+            count = 0
             for item in content:
-                print(item)
+                name, path = item
+                print ('{}: {}, {}'.format(count + 1, name, path))
+                count += 1
         else:
             print ('No project created yet.')
 
@@ -70,10 +74,26 @@ class Dude:
             method = self.stdin.read()
 
         project = Project(name, path, method)
-        project.create()
+        # project.create()
         project.discover()
         project.save(self.db)
         return project
+
+    def findProject(self, path):
+        query = 'select name, path, init from projects where path = "{}"'.format(path)
+        result = self.db.fetch(query)
+
+        if len(result) > 0:
+            name, path, init = result[0]
+            project = Project(name, path, init)
+            return project
+        else:
+            raise Exception
+
+    def workon(self, path):
+        self.activeProject = self.findProject(path)
+        print ('--')
+        print(self.activeProject)
 
     def getDB(self):
         return self.db

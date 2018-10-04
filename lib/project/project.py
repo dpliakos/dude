@@ -38,6 +38,9 @@ class Project():
             "path": self.path
         }
 
+        if len(self.variables) > 0:
+            project['variables'] = self.variables
+
         return project
 
     def readFromDb(self, db):
@@ -47,6 +50,9 @@ class Project():
 
         query = """ select * from projects where path = '{}' """.format(self.path)
         return db.fetch(query)
+
+    def saveToDb(self, db):
+        pass
 
     def discover(self):
         filePath = "/".join([self.path, self.defaultProjectFile])
@@ -61,27 +67,39 @@ class Project():
         if "hooks" in file:
             self.gitHooks = file["hooks"]
         if "variables" in file:
+            print (file['variables'])
             for variable in file['variables']:
-                var = Variable(variable, file['variables'][variable])
-                self.variables.append(var)
+                for key in variable:
+                    var = Variable(key, variable[key])
+                    self.variables.append(var)
 
         self.initialized = True
 
     def create(self):
-        if not self.isFileCreated:
-            data = self.getProject()
-            yaml = YamlParser()
-            yaml.write(path=self.filePath, content=data)
+        # if not self.isFileCreated:
+        data = self.getProject()
+        yaml = YamlParser()
+        yaml.write(path=self.filePath, content=data)
 
     def readFile(self):
         print  ('reading the configuration file')
+
+    def saveFile(self):
+        data = self.getProject()
+        yaml = YamlParser()
+        yaml.write(path=self.filePath, content=data)
 
     def save(self, db):
         if not self.initialized:
             print('The project is not ready yer')
             return False
 
-        project = self.getProject()
+        project = {
+            "name": self.name,
+            "init": self.initMethod,
+            "path": self.path
+        }
+
         projectId = db.insert('projects', project)
 
         # for variable in self.variables:
@@ -101,8 +119,23 @@ class Project():
 
             db.insert('githook_assignments', bundle)
 
-    def addVariable(self, title, value):
-        pass
+    def addVariable(self, name, value):
+        variable = Variable(name, value)
+        self.variables.append(variable)
+        self.create()
+
+    def removeVarible(self, name):
+        newVars = []
+        variableFound = False
+        for variable in self.variables:
+            if variable.name != name:
+                newVars.append(variable)
+            else:
+                variableFound = True
+        self.variables = newVars
+
+        self.create()
+        return variableFound
 
     def setup(self):
         pass

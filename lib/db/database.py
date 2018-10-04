@@ -42,8 +42,14 @@ class DBManager:
 
         return success
 
-    def preview(self, table):
-        query = "select * from " + table
+    def preview(self, table, fields=[]):
+
+        if len(fields) > 0:
+            fieldList = ','.join(fields)
+        else:
+            fieldList = '*'
+
+        query = "select {} from {}".format(fieldList, table)
         return self.fetch(query)
 
     def createTable(self, title, fields):
@@ -58,9 +64,8 @@ class DBManager:
             count += 1
 
         query += " )"
-        
-        test = self.execute(query)
 
+        test = self.execute(query)
 
     def dropTable(self, title):
         query = 'drop table ' + title

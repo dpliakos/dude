@@ -17,10 +17,15 @@ if __name__ == '__main__':
     dude.readProjects()
     print('\nCreating a project')
     prj = dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj', method='default'   )
-    # print ('\nReading projects again')
-    # dude.readProjects()
+    prj2 = dude.createProject(name='dpliakos2', path = '/home/dpliakos/Desktop/prj2', method='default'   )
+    print ('\nReading projects again')
+    dude.readProjects()
 
-    dudeDB = dude.getDB()
+    dude.workon('/home/dpliakos/Desktop/prj')
+    print ('dude active project is')
 
-    print (prj.readFromDb(dudeDB))
-    # prj.create()
+    test = dude.activeProject
+    test.addVariable('__lala__', 'another test')
+    test.addVariable('__test__', 'this is a test var')
+
+    print (test.variables)

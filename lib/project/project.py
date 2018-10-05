@@ -43,6 +43,16 @@ class Project():
 
         return project
 
+    def existsInDb(self, db):
+        query = 'select id from projects where path = "{}"'.format(self.path)
+        result = db.fetch(query)
+
+        if len(result) > 0:
+            id  = result[0]
+            return id
+        else:
+            return None
+
     def readFromDb(self, db):
         if not self.initialized:
             print ('Project is not initialized yet')
@@ -50,6 +60,26 @@ class Project():
 
         query = """ select * from projects where path = '{}' """.format(self.path)
         return db.fetch(query)
+
+    def createToDb(self, db):
+        project = {
+            "name": self.name,
+            "init": self.initMethod,
+            "path": self.path
+        }
+
+        id = db.insert('projects', project)
+        self.id = id
+
+        for variable in self.variables:
+
+            bundle = {
+                "title": variable.name,
+                "value": variable.value,
+                "project": str(id)
+            }
+
+            db.insert('variables', bundle)
 
     def saveToDb(self, db):
         pass
@@ -90,34 +120,34 @@ class Project():
         yaml.write(path=self.filePath, content=data)
 
     def save(self, db):
+        # check if exists in DB
         if not self.initialized:
-            print('The project is not ready yer')
+            print('The project is not ready yet')
             return False
 
-        project = {
-            "name": self.name,
-            "init": self.initMethod,
-            "path": self.path
-        }
 
-        projectId = db.insert('projects', project)
+        id = self.existsInDb(db)
+        if id is None:
+            self.createToDb(db)
+        else:
+            self.saveToDb(db)
 
         # for variable in self.variables:
         #
         #     bundle = {
-        #         "title": variable,
-        #         "value": self.variables[variable],
+        #         "title": variable.name,
+        #         "value": variable.value,
         #         "project": str(projectId)
         #     }
         #     db.insert('variables', bundle)
-
-        for hook in self.gitHooks:
-            bundle = {
-                "hook": str(1),
-                "project": str(projectId)
-            }
-
-            db.insert('githook_assignments', bundle)
+        #
+        # for hook in self.gitHooks:
+        #     bundle = {
+        #         "hook": str(1),
+        #         "project": str(projectId)
+        #     }
+        #
+        #     db.insert('githook_assignments', bundle)
 
     def addVariable(self, name, value):
         variable = Variable(name, value)

@@ -28,4 +28,6 @@ if __name__ == '__main__':
     test.addVariable('__lala__', 'another test')
     test.addVariable('__test__', 'this is a test var')
 
+    dude.readProjects()
+
     print (test.variables)

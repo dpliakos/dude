@@ -10,7 +10,7 @@ class Project():
         self.initMethod = init
         self.gitHooks = []
         self.path = path
-        self.variables = []
+        self.variables = {}
         self.initialized = False
         self.filePath = "/".join([self.path, self.defaultProjectFile])
         self.isFileCreated = os.path.isfile(self.filePath)
@@ -37,7 +37,7 @@ class Project():
         if len(self.variables) > 0:
             line += 'variables: \n'
             for var in self.variables:
-                line += '\t {}: {}\n'.format(var.name, var.value)
+                line += '\t {}: {}\n'.format(var, self.variables[var])
 
         return line
 
@@ -87,8 +87,8 @@ class Project():
         for variable in self.variables:
 
             bundle = {
-                "title": variable.name,
-                "value": variable.value,
+                "title": variable,
+                "value": self.variables[variable],
                 "project": str(id)
             }
 
@@ -112,8 +112,7 @@ class Project():
         if "variables" in file:
             for variable in file['variables']:
                 for key in variable:
-                    var = Variable(key, variable[key])
-                    self.variables.append(var)
+                    self.variables[key] = variable[key]
 
         self.initialized = True
 
@@ -162,29 +161,11 @@ class Project():
         #     db.insert('githook_assignments', bundle)
 
     def addVariable(self, name, value):
-        found = False
-
-        for variable in self.variables:
-            if variable.name == name:
-                found = True
-
-        if not found:
-            variable = Variable(name, value)
-            self.variables.append(variable)
-            self.create()
+        self.variables[name] = value
+        self.create()
 
     def removeVarible(self, name):
-        newVars = []
-        variableFound = False
-        for variable in self.variables:
-            if variable.name != name:
-                newVars.append(variable)
-            else:
-                variableFound = True
-        self.variables = newVars
-
-        self.create()
-        return variableFound
+        self.variables[name] = None
 
     def setup(self):
         pass

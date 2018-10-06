@@ -73,7 +73,7 @@ class Dude:
             print ('InitMethod[default]: ')
             method = self.stdin.read()
 
-        project = Project(name, path, method)
+        project = Project(name, path, method, self.db)
         # project.create()
         project.discover()
         project.save(self.db)
@@ -85,7 +85,7 @@ class Dude:
 
         if len(result) > 0:
             name, path, init = result[0]
-            project = Project(name, path, init)
+            project = Project(name, path, init, self.db)
             return project
         else:
             raise Exception

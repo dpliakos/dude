@@ -21,15 +21,8 @@ if __name__ == '__main__':
     print ('\nReading projects again')
     dude.readProjects()
 
-    print ('prj variables')
-    print (prj.variables)
-
     dude.workon('/home/dpliakos/Desktop/prj')
     test = dude.activeProject
-
-    print ('test variables')
-    print (test.variables)
-
 
     test.addVariable('__another__', 'test')
     # test.addVariable('__lala__', 'another test')

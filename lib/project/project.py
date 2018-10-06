@@ -4,7 +4,7 @@ from ..utils.yaml_parser import YamlParser
 from ..variable.variable import Variable
 
 class Project():
-    def __init__(self, name, path, init):
+    def __init__(self, name, path, init, db=None):
         self.defaultProjectFile = "dude.yml"
         self.name = name
         self.initMethod = init
@@ -14,6 +14,9 @@ class Project():
         self.initialized = False
         self.filePath = "/".join([self.path, self.defaultProjectFile])
         self.isFileCreated = os.path.isfile(self.filePath)
+
+        if db is not None:
+            self.db = db
 
         if self.isFileCreated:
             self.discover()
@@ -186,3 +189,16 @@ class Project():
 
     def setup(self):
         pass
+
+    def variablesChanged(self, database=None):
+        db = None
+        if database is not None:
+            db = database
+        elif self.db is not None:
+            db = self.db
+        else:
+            raise Exception()
+
+        query = 'select name, value from variables where id = {}'.format(self.id)
+        dbVars = db.fetch(query)
+         print (dbVars)

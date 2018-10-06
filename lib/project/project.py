@@ -26,8 +26,9 @@ class Project():
 
     def __repr__(self):
         line = ''
-        line += 'name: '  + self.name + '\n'
-        line += 'path: ' + self.path + '\n'
+        line += 'name: '  + self.name + '\n\n'
+        line += 'path: ' + self.path + '\n\n'
+
         if len(self.gitHooks) > 0:
             line += 'git hooks: \n'
             for hook in self.gitHooks:
@@ -36,10 +37,24 @@ class Project():
         if len(self.variables) > 0:
             line += 'variables: \n'
             for var in self.variables:
-                line += '\t {}: {}\n'.format(var, self.variables[var])
+                line += '  {}: {}\n'.format(var, self.variables[var])
 
+        line += '\n\n'
         if len(self.workflow) > 0:
-            print (self.workflow)
+            line += 'workflow:\n'
+
+            if self.workflow['init']:
+                line += '  {}: {}\n'.format('init', self.workflow['init'])
+
+            if self.workflow['open']:
+                line += '  {}: {}\n'.format('open', self.workflow['open'])
+
+
+            if self.workflow['close']:
+                line += '  {}: {}\n'.format('close', self.workflow['close'])
+
+            if self.workflow['clean']:
+                line += '  {}: {}\n'.format('clean', self.workflow['clean'])
 
         return line
 
@@ -120,6 +135,8 @@ class Project():
                 self.variables[key] = file['variables'][key]
 
         if 'workflow' in file:
+            print('workflow --------------------------')
+            print(file['workflow'])
             if 'init' in file['workflow']:
                 self.workflow['init'] = file['workflow']['init']
 
@@ -139,7 +156,7 @@ class Project():
         # if not self.isFileCreated:
         data = self.getProject()
         yaml = YamlParser()
-        yaml.write(path=self.filePath, content=data)
+        yaml.writePreformated(path=self.filePath, content=str(self))
 
     def readFile(self):
         print  ('reading the configuration file')
@@ -147,7 +164,7 @@ class Project():
     def saveFile(self):
         data = self.getProject()
         yaml = YamlParser()
-        yaml.write(path=self.filePath, content=data)
+        yaml.writePreformated(path=self.filePath, content=str(self))
 
     def save(self, db):
         # check if exists in DB

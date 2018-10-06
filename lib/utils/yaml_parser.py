@@ -2,10 +2,8 @@ import yaml
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
-    print ('cloader was imported')
 except ImportError:
     from yaml import Loader, Dumper
-    print ('cloader was not imported. Fallback')
 
 class YamlParser(object):
 
@@ -46,11 +44,15 @@ class YamlParser(object):
             for line in formated:
                 file.write(line)
 
+    def writePreformated(self, path, content):
+        with open (path, 'w') as file:
+            file.write(content)
+
     def prepareYaml(self, data):
-        formated = self.yamlPasre([], 0, data)
+        formated = self.yamlParse([], 0, data)
         return formated
 
-    def yamlPasre(self, accumulator, intent, data):
+    def yamlParse(self, accumulator, intent, data):
         if self.isAtomic(data):
             accumulator.append('{}{}'.format(('  '*intent), data))
             return accumulator
@@ -61,7 +63,7 @@ class YamlParser(object):
         elif type(data) == dict:
             for key in data:
                 accumulator.append('\n\n{}{}:\n'.format(("  "*intent), key))
-                accumulator = accumulator + self.yamlPasre([], intent + 1, data[key])
+                accumulator = accumulator + self.yamlParse([], intent + 1, data[key])
             return accumulator
 
 

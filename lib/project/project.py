@@ -4,13 +4,13 @@ from ..utils.yaml_parser import YamlParser
 from ..variable.variable import Variable
 
 class Project():
-    def __init__(self, name, path, init, db=None):
+    def __init__(self, name, path, db=None):
         self.defaultProjectFile = "dude.yml"
         self.name = name
-        self.initMethod = init
         self.gitHooks = []
         self.path = path
         self.variables = {}
+        self.workflow = {}
         self.initialized = False
         self.filePath = "/".join([self.path, self.defaultProjectFile])
         self.isFileCreated = os.path.isfile(self.filePath)
@@ -38,6 +38,9 @@ class Project():
             for var in self.variables:
                 line += '\t {}: {}\n'.format(var, self.variables[var])
 
+        if len(self.workflow) > 0:
+            print (self.workflow)
+
         return line
 
     def checkStatus(self):
@@ -49,12 +52,14 @@ class Project():
     def getProject(self):
         project = {
             "name": self.name,
-            "init": self.initMethod,
             "path": self.path
         }
 
         if len(self.variables) > 0:
             project['variables'] = self.variables
+
+        if len(self.workflow) > 0:
+            project['workflow'] = self.workflow
 
         return project
 
@@ -79,7 +84,6 @@ class Project():
     def createToDb(self, db):
         project = {
             "name": self.name,
-            "init": self.initMethod,
             "path": self.path
         }
 
@@ -105,16 +109,30 @@ class Project():
         with open(filePath, "r") as stream:
             file = yaml.load(stream)
 
-        if "name" in file:
+        if 'name' in file:
             self.name = file["name"]
-        if "init" in file:
-            self.initMethod = file["init"]
-        if "hooks" in file:
+
+        if 'hooks' in file:
             self.gitHooks = file["hooks"]
-        if "variables" in file:
+
+        if 'variables' in file:
             for key in file['variables']:
                 self.variables[key] = file['variables'][key]
 
+        if 'workflow' in file:
+            if 'init' in file['workflow']:
+                self.workflow['init'] = file['workflow']['init']
+
+            if 'open' in file['workflow']:
+                self.workflow['open'] = file['workflow']['open']
+
+            if 'close' in file['workflow']:
+                self.workflow['close'] = file['workflow']['close']
+
+            if 'clean' in file['workflow']:
+                self.workflow['clean'] = file['workflow']['clean']
+
+        print (self)
         self.initialized = True
 
     def create(self):

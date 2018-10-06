@@ -59,7 +59,7 @@ class Dude:
     def say_hello(self):
         print('hello! I\'m Dude!')
 
-    def createProject(self, name='', path='', method=''):
+    def createProject(self, name='', path=''):
 
         if name == '':
             print ('Project name: ')
@@ -69,23 +69,19 @@ class Dude:
             print ('Project path: ')
             path = self.stdin.read()
 
-        if method == '':
-            print ('InitMethod[default]: ')
-            method = self.stdin.read()
-
-        project = Project(name, path, method, self.db)
+        project = Project(name, path, self.db)
         # project.create()
         project.discover()
         project.save(self.db)
         return project
 
     def findProject(self, path):
-        query = 'select name, path, init from projects where path = "{}"'.format(path)
+        query = 'select name, path from projects where path = "{}"'.format(path)
         result = self.db.fetch(query)
 
         if len(result) > 0:
-            name, path, init = result[0]
-            project = Project(name, path, init, self.db)
+            name, path = result[0]
+            project = Project(name, path, self.db)
             return project
         else:
             raise Exception

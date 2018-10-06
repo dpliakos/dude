@@ -20,7 +20,6 @@ projects:
   id: integer primary key
   name: string
   path: string unique
-  init: int
 
 githook_assignments:
   id: integer primary key

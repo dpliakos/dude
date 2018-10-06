@@ -15,6 +15,9 @@ class Project():
         self.filePath = "/".join([self.path, self.defaultProjectFile])
         self.isFileCreated = os.path.isfile(self.filePath)
 
+        if self.isFileCreated:
+            self.discover()
+
     def __repr__(self):
         line = ''
         line += 'name: '  + self.name + '\n'
@@ -27,7 +30,7 @@ class Project():
         if len(self.variables) > 0:
             line += 'variables: \n'
             for var in self.variables:
-                line += "\t" +  var + ": " + self.variables[var] + "\n"
+                line += '\t {}: {}\n'.format(var.name, var.value)
 
         return line
 
@@ -39,6 +42,8 @@ class Project():
         }
 
         if len(self.variables) > 0:
+            print ('variables for file')
+            print (self.variables)
             project['variables'] = self.variables
 
         return project
@@ -101,9 +106,14 @@ class Project():
             for variable in file['variables']:
                 for key in variable:
                     var = Variable(key, variable[key])
+                    print ('variable')
+                    print (var)
                     self.variables.append(var)
 
         self.initialized = True
+
+        print ('self.variables')
+        print (self.variables)
 
     def create(self):
         # if not self.isFileCreated:
@@ -150,9 +160,16 @@ class Project():
         #     db.insert('githook_assignments', bundle)
 
     def addVariable(self, name, value):
-        variable = Variable(name, value)
-        self.variables.append(variable)
-        self.create()
+        found = False
+
+        for variable in self.variables:
+            if variable.name == name:
+                found = True
+
+        if not found:
+            variable = Variable(name, value)
+            self.variables.append(variable)
+            self.create()
 
     def removeVarible(self, name):
         newVars = []

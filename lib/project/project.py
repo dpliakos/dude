@@ -18,7 +18,6 @@ class Project():
         self.id = None
 
         if db is not None:
-            print ('has db')
             self.db = db
             self.id = self.existsInDb(self.db)
 
@@ -41,6 +40,12 @@ class Project():
 
         return line
 
+    def checkStatus(self):
+        rewrite = self.variablesChanged()
+        if rewrite:
+            # update scripts
+            print ('scripts need to be updated')
+
     def getProject(self):
         project = {
             "name": self.name,
@@ -59,9 +64,6 @@ class Project():
 
         if len(result) > 0:
             id  = result[0][0]
-            print ('result')
-            print (result)
-            print ('id = {}'.format(id))
             return id
         else:
             return None
@@ -110,9 +112,8 @@ class Project():
         if "hooks" in file:
             self.gitHooks = file["hooks"]
         if "variables" in file:
-            for variable in file['variables']:
-                for key in variable:
-                    self.variables[key] = variable[key]
+            for key in file['variables']:
+                self.variables[key] = file['variables'][key]
 
         self.initialized = True
 
@@ -180,5 +181,26 @@ class Project():
             raise Exception()
 
         query = 'select title, value from variables where id = {}'.format(self.id)
-        print (query)
         dbVars = db.fetch(query)
+
+        rewrite = False
+
+        for variable in dbVars:
+            dbKey = variable[0]
+            dbValue = variable[1]
+
+            if not self.variables[dbKey] or self.variables[dbKey] is None:
+                query = 'delete from variables where project = {} and title = {}'.fromat(
+                    self.id, dbKey)
+            elif self.variables[dbKey] != dbValue:
+                query = '''update variables set value = '{}' where project = {}
+                        and title = '{}' '''.format(
+                        dbValue,
+                        self.id, dbKey)
+
+                db.execute(query)
+                rewrite = True
+
+        query = 'select title, value from variables where project = {}'.format(self.id)
+
+        return rewrite

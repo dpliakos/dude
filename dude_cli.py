@@ -26,5 +26,5 @@ if __name__ == '__main__':
 
     test.addVariable('__another__', 'test')
     # test.addVariable('__lala__', 'another test')
-    # test.addVariable('__test__', 'this is a test var')
+    test.addVariable('__test__', 'lolo')
     test.variablesChanged()

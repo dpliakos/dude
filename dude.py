@@ -92,8 +92,7 @@ class Dude:
 
     def workon(self, path):
         self.activeProject = self.findProject(path)
-        print ('--')
-        print(self.activeProject)
+        print ('project changed to: {}'.format(self.activeProject.name))
 
     def getDB(self):
         return self.db

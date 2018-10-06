@@ -14,9 +14,13 @@ class Project():
         self.initialized = False
         self.filePath = "/".join([self.path, self.defaultProjectFile])
         self.isFileCreated = os.path.isfile(self.filePath)
+        self.db = None
+        self.id = None
 
         if db is not None:
+            print ('has db')
             self.db = db
+            self.id = self.existsInDb(self.db)
 
         if self.isFileCreated:
             self.discover()
@@ -45,8 +49,6 @@ class Project():
         }
 
         if len(self.variables) > 0:
-            print ('variables for file')
-            print (self.variables)
             project['variables'] = self.variables
 
         return project
@@ -56,7 +58,10 @@ class Project():
         result = db.fetch(query)
 
         if len(result) > 0:
-            id  = result[0]
+            id  = result[0][0]
+            print ('result')
+            print (result)
+            print ('id = {}'.format(id))
             return id
         else:
             return None
@@ -105,18 +110,12 @@ class Project():
         if "hooks" in file:
             self.gitHooks = file["hooks"]
         if "variables" in file:
-            print (file['variables'])
             for variable in file['variables']:
                 for key in variable:
                     var = Variable(key, variable[key])
-                    print ('variable')
-                    print (var)
                     self.variables.append(var)
 
         self.initialized = True
-
-        print ('self.variables')
-        print (self.variables)
 
     def create(self):
         # if not self.isFileCreated:
@@ -199,6 +198,6 @@ class Project():
         else:
             raise Exception()
 
-        query = 'select name, value from variables where id = {}'.format(self.id)
+        query = 'select title, value from variables where id = {}'.format(self.id)
+        print (query)
         dbVars = db.fetch(query)
-         print (dbVars)

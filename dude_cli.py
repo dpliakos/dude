@@ -16,17 +16,24 @@ if __name__ == '__main__':
     print('\n\nReading projects')
     dude.readProjects()
     print('\nCreating a project')
-    prj = dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj', method='default'   )
-    prj2 = dude.createProject(name='dpliakos2', path = '/home/dpliakos/Desktop/prj2', method='default'   )
+    prj = dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj', method='default')
+    # prj2 = dude.createProject(name='dpliakos2', path = '/home/dpliakos/Desktop/prj2', method='default')
     print ('\nReading projects again')
     dude.readProjects()
 
-    dude.workon('/home/dpliakos/Desktop/prj')
-    print ('dude active project is')
+    print ('prj variables')
+    print (prj.variables)
 
+    dude.workon('/home/dpliakos/Desktop/prj')
     test = dude.activeProject
-    test.addVariable('__lala__', 'another test')
-    test.addVariable('__test__', 'this is a test var')
+
+    print ('test variables')
+    print (test.variables)
+
+
+    test.addVariable('__another__', 'test')
+    # test.addVariable('__lala__', 'another test')
+    # test.addVariable('__test__', 'this is a test var')
 
     dude.readProjects()
 

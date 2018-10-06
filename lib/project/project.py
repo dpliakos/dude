@@ -39,7 +39,7 @@ class Project():
             for var in self.variables:
                 line += '  {}: {}\n'.format(var, self.variables[var])
 
-        line += '\n\n'
+        line += '\n'
         if len(self.workflow) > 0:
             line += 'workflow:\n'
 
@@ -135,8 +135,6 @@ class Project():
                 self.variables[key] = file['variables'][key]
 
         if 'workflow' in file:
-            print('workflow --------------------------')
-            print(file['workflow'])
             if 'init' in file['workflow']:
                 self.workflow['init'] = file['workflow']['init']
 
@@ -149,7 +147,6 @@ class Project():
             if 'clean' in file['workflow']:
                 self.workflow['clean'] = file['workflow']['clean']
 
-        print (self)
         self.initialized = True
 
     def create(self):

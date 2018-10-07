@@ -4,8 +4,3 @@
 a = '__test__'
 
 print 'this is a mock init script'
-print 'a: ' + str(a)
-
-lala = 'this is a value for lala'
-
-print ('lala: ' + str(lala))

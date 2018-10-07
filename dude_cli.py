@@ -14,6 +14,7 @@ class DudeCLI:
 
         active.init()
         active.open()
+        active.close()
 
     def parseArgs(self):
         pass

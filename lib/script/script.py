@@ -2,15 +2,16 @@ from datetime import datetime
 from ..utils.file import File
 
 class Script():
-    def __init__(self, name):
-        self.basepath = './scripts/init-scripts'
+    def __init__(self, name, type):
+        self.basepath = './scripts/{}-scripts'.format(type)
         self.path = '/'.join([self.basepath, name])
         self.file = File(self.path)
+        self.type = type
 
         self.basetarget = '/tmp/dude'
         time = str(datetime.now()).replace(' ', '_').replace(':', '-').split('.')[0]
 
-        self.newName = '{}_{}'.format(time, name)
+        self.newName = '{}_{}_{}'.format(time, type, name)
         exists = self.file.exist()
 
         self.tmpPath = '/'.join([self.basetarget, self.newName])

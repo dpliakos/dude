@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+
+import docker
+
+client = docker.from_env()
+mysql = client.containers.get('__mysql_container__')
+drupal = client.containers.get('__drupal_container__')
+
+print ('starting mysql container...')
+mysql.start()
+
+print ('starting apache container...')
+drupal.start()
+
+print ('starting apache2 service...')
+drupal.exec_run(['service', 'apache2', 'start'])

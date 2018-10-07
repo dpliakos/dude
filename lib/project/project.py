@@ -242,17 +242,23 @@ class Project():
 
     def init(self):
         print ('should initialize project')
-        script = Script(self.workflow['init'])
+        script = Script(self.workflow['init'], 'init')
         script.createTempCopy()
         script.replaceVariables(self.variables)
         script.execute()
         # script.deleteTempCopy()
 
     def open(self):
-        print ('should open project')
+        script = Script(self.workflow['open'], 'open')
+        script.createTempCopy()
+        script.replaceVariables(self.variables)
+        script.execute()
 
     def close(self):
-        print ('should close project')
+        script = Script(self.workflow['close'], 'close')
+        script.createTempCopy()
+        script.replaceVariables(self.variables)
+        script.execute()
 
     def clean(self):
         print ('should delete (clean) project')

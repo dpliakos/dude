@@ -1,5 +1,7 @@
 import os
 import yaml
+from ..utils.file import File
+from ..script.script import Script
 from ..utils.yaml_parser import YamlParser
 from ..variable.variable import Variable
 
@@ -13,7 +15,8 @@ class Project():
         self.workflow = {}
         self.initialized = False
         self.filePath = "/".join([self.path, self.defaultProjectFile])
-        self.isFileCreated = os.path.isfile(self.filePath)
+        self.file = File(self.filePath)
+        self.isFileCreated = self.file.exist()
         self.db = None
         self.id = None
 
@@ -236,3 +239,20 @@ class Project():
         query = 'select title, value from variables where project = {}'.format(self.id)
 
         return rewrite
+
+    def init(self):
+        print ('should initialize project')
+        script = Script(self.workflow['init'])
+        script.createTempCopy()
+        script.replaceVariables(self.variables)
+        script.execute()
+        # script.deleteTempCopy()
+
+    def open(self):
+        print ('should open project')
+
+    def close(self):
+        print ('should close project')
+
+    def clean(self):
+        print ('should delete (clean) project')

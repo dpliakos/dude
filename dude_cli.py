@@ -1,22 +1,26 @@
 from dude import Dude
 
 class DudeCLI:
-    def __inti__(self):
-        print('cli init!')
+    def __init__(self):
+        self.dude = Dude()
 
-if __name__ == '__main__':
-    dude = Dude()
-    try:
-        dude.clean()
-    except:
+    def invoke(self):
+        print('\nCreating a project')
+        prj = self.dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj')
+        self.dude.readProjects()
+
+        self.dude.workon('/home/dpliakos/Desktop/prj')
+        active = self.dude.activeProject
+
+        active.init()
+        active.open()
+
+    def parseArgs(self):
         pass
 
-    dude.install()
 
-    print('\nCreating a project')
-    prj = dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj')
-    dude.readProjects()
 
-    dude.workon('/home/dpliakos/Desktop/prj')
-    test = dude.activeProject
-    
+
+if __name__ == '__main__':
+    cli = DudeCLI()
+    cli.invoke()

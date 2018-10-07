@@ -36,3 +36,7 @@ init_depedancy:
   id: int
   init_methods: int
   varible: string
+
+last_active_project:
+  project_id: int
+  priject_path: string

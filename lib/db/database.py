@@ -31,7 +31,7 @@ class DBManager:
             keys.append(key)
             values.append(bundles[key])
 
-        values = ["'" + x + "'" for x in values]
+        values = ["'{}'".format(x) for x in values]
         query = "insert into " + table + " ( "
         query += ", ".join(keys)
         query += ") values ( "

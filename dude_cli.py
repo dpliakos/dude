@@ -8,7 +8,7 @@ class DudeCLI:
         print('\nCreating a project')
         prj = self.dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj')
         self.dude.readProjects()
-
+        
         self.dude.workon('/home/dpliakos/Desktop/prj')
         active = self.dude.activeProject
 

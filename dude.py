@@ -12,7 +12,7 @@ class Dude:
         self.stdin = Compatibility()
         self.dbName = '.dude'
         self.db = DBManager(self.dbName)
-        self.installed = True
+        self.installed = False
         self.projects = []
         self.activeProject = None
 
@@ -65,6 +65,10 @@ class Dude:
     def say_hello(self):
         print('hello! I\'m Dude!')
 
+    def getProject(self, path):
+        project = self.findProject(path)
+        return project
+
     def createProject(self, name='', path=''):
 
         if name == '':
@@ -93,7 +97,7 @@ class Dude:
             raise Exception
 
     def workon(self, path):
-        project = self.findProject(path)
+        project = self.getProject(path)
         self.activeProject = project
 
         query = 'update last_active_project set project_id = "{}", project_path = "{}" '.format(project.id, project.path)

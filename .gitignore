@@ -1,3 +1,4 @@
 .dude_drupal
 *.pyc
 __pycache__
+.dude

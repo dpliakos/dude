@@ -39,4 +39,4 @@ init_depedancy:
 
 last_active_project:
   project_id: int
-  priject_path: string
+  project_path: string

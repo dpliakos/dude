@@ -31,7 +31,7 @@ class File:
         return status
 
     def makeExecutable(self):
-        status = spc.call(['chmod', '755', self.path])
+        status = spc.call(['chmod', 'a+x', self.path])
         return status == 0
 
     def execute(self):

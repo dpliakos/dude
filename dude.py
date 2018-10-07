@@ -10,7 +10,7 @@ class Dude:
         self.dbconfiguration = './config/db.yml'
         self.dbInitData = './config/init_data.yml'
         self.stdin = Compatibility()
-        self.dbName = '.dude_drupal'
+        self.dbName = '.dude'
         self.db = DBManager(self.dbName)
         self.installed = True
         self.projects = []
@@ -93,7 +93,11 @@ class Dude:
             raise Exception
 
     def workon(self, path):
-        self.activeProject = self.findProject(path)
+        project = self.findProject(path)
+        self.activeProject = project
+
+        query = 'update last_active_project set project_id = "{}", project_path = "{}" '.format(project.id, project.path)
+        self.db.execute(query)
         print ('project changed to: {}'.format(self.activeProject.name))
 
     def getDB(self):

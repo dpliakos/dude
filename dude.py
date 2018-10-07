@@ -17,6 +17,12 @@ class Dude:
         self.activeProject = None
 
     def checkInstallation(self):
+        try:
+            test = self.db.preview('projects')
+            self.installed = True
+        except:
+            self.installed = False
+
         return self.installed
 
     def install(self):

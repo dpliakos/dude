@@ -1,7 +1,7 @@
 from datetime import datetime
 from ..utils.file import File
 
-class Script():
+class ExecutableScript(Script):
     def __init__(self, name):
         self.basepath = './scripts/init-scripts'
         self.path = '/'.join([self.basepath, name])

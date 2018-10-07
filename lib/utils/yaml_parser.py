@@ -35,7 +35,7 @@ class YamlParser(object):
     '''
     content must by an array of dictionaries.
     The dictionaries may have any (valid) yaml format, they will be
-    traversed and print by the order they are inside the array.
+    traversed and be print.
     '''
     def write(self, path, content):
         formated = self.prepareYaml(content)

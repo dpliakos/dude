@@ -1,25 +1,34 @@
 from datetime import datetime
 from ..utils.file import File
+from ..utils.directory import Directory
 
 class Script():
-    def __init__(self, name, type):
-        self.basepath = './scripts/{}-scripts'.format(type)
+    def __init__(self, name, basepath, basetarget):
+        self.basepath = basepath
+
+        baseDir = Directory(basepath)
+
         self.path = '/'.join([self.basepath, name])
         self.file = File(self.path)
-        self.type = type
 
-        self.basetarget = '/tmp/dude'
+        self.basetarget = basetarget
+        targetDir = Directory(basetarget, True)
+
+        if not targetDir.exist():
+            targetDir.create()
+
         time = str(datetime.now()).replace(' ', '_').replace(':', '-').split('.')[0]
 
-        self.newName = '{}_{}_{}'.format(time, type, name)
+        self.newName = '{}_{}'.format(time, name)
         exists = self.file.exist()
 
         self.tmpPath = '/'.join([self.basetarget, self.newName])
         self.tmpFile = None
 
-
         if not exists:
             raise Exception()
+
+
 
     def createTempCopy(self):
         success = self.file.copy(self.tmpPath)
@@ -41,6 +50,7 @@ class Script():
         for key in variables:
             self.tmpFile.replace(key, variables[key])
 
+    # TODO: remove this function
     def execute(self):
         self.tmpFile.makeExecutable()
         self.tmpFile.execute()

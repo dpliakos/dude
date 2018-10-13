@@ -2,6 +2,10 @@ import os
 import yaml
 from ..utils.file import File
 from ..script.script import Script
+from ..script.init_script import InitScript
+from ..script.open_script import OpenScript
+from ..script.close_script import CloseScript
+from ..script.clean_script import CleanScript
 from ..utils.yaml_parser import YamlParser
 from ..variable.variable import Variable
 
@@ -242,21 +246,21 @@ class Project():
 
     def init(self):
         print ('should initialize project')
-        script = Script(self.workflow['init'], 'init')
+        script = InitScript(self.workflow['init'])
         script.createTempCopy()
         script.replaceVariables(self.variables)
         script.execute()
         script.deleteTempCopy()
 
     def open(self):
-        script = Script(self.workflow['open'], 'open')
+        script = OpenScript(self.workflow['open'])
         script.createTempCopy()
         script.replaceVariables(self.variables)
         script.execute()
         script.deleteTempCopy()
 
     def close(self):
-        script = Script(self.workflow['close'], 'close')
+        script = CloseScript(self.workflow['close'])
         script.createTempCopy()
         script.replaceVariables(self.variables)
         script.execute()

@@ -5,17 +5,27 @@ class DudeCLI:
         self.dude = Dude()
 
     def invoke(self):
-        print('\nCreating a project')
-        prj = self.dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj')
+        # print('\nCreating a project')
+        # prj = self.dude.createProject(name='dpliakos', path = '/home/dpliakos/Desktop/prj')
+        # self.dude.readProjects()
+
+        # self.dude.workon('/home/dpliakos/Desktop/prj')
+        # active = self.dude.activeProject
+
+        # active.init()
+        # active.open()
+        # active.close()
+
+        prj = self.dude.createProject(name='Meridian Trust', path = '/home/dpliakos/Documents/pointBlank/meridian trust/site')
         self.dude.readProjects()
 
-        self.dude.workon('/home/dpliakos/Desktop/prj')
+        self.dude.workon('/home/dpliakos/Documents/pointBlank/meridian trust/site')
         active = self.dude.activeProject
 
         active.init()
         active.open()
         active.close()
-        pass
+
 
     def parseArgs(self):
         pass

@@ -1,0 +1,19 @@
+#!/usr/bin/python3
+
+import docker
+
+client = docker.from_env()
+mysql = client.containers.get('__mysql_container__')
+drupal = client.containers.get('__drupal_container__')
+
+print ('starting mysql container...')
+mysql.start()
+
+print ('starting drupal container...')
+drupal.start()
+
+print ('starting php server...')
+drupal.exec_run(['php', '-S', '__ip__:__port__', '-t', '__webroot__'], detach=True)
+
+# print ('running gulp tasks')
+# drupal.exec_run(['cd', '__webroot__', '&&', 'gulp', 'watch'])

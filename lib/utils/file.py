@@ -22,7 +22,23 @@ class File:
         return status == 0
 
     def replace(self, source, target):
-        regex = 's/{}/{}/g'.format(source, target)
+        safeSource = source.replace('/', '\/')
+
+        if type(target) == str:
+            safeTarget = target.replace('/', '\/')
+        else:
+            safeTarget = target
+        # safeSource = safeSource.replace('.', '\.')
+        # print ('replacing')
+        # print (safeSource)
+        # print ('with')
+        # print(target)
+        regex = 's/{}/{}/g'.format(safeSource, safeTarget)
+        # print ('final')
+        # print (regex)
+        # print ('path')
+        # print (self.path)
+        # print ('\n')
         status = spc.call(['sed', '-i', regex, self.path])
         return status == 0
 

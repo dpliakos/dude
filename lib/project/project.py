@@ -257,7 +257,7 @@ class Project():
         script.createTempCopy()
         script.replaceVariables(self.variables)
         script.execute()
-        script.deleteTempCopy()
+        # script.deleteTempCopy()
 
     def close(self):
         script = CloseScript(self.workflow['close'])

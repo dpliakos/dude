@@ -48,7 +48,7 @@ fi
 # If there are whitespace errors, print the offending file names and fail.
 #exec git diff-index --check --cached $against --
 
-projectRoot='/var/www/html/web/themes/custom/pb'
+projectRoot='/var/www/html/web/themes/custom'
 jsErrors="/tmp/pre-commit.js"
 scssErrors="/tmp/pre-commit.scss"
 twigErrors="/tmp/pre-commit.twig"

@@ -46,8 +46,18 @@ class File:
         status = spc.call(['rm', self.path])
         return status
 
+    '''
+    Makes the file executable.
+    '''
     def makeExecutable(self):
         status = spc.call(['chmod', 'a+x', self.path])
+        return status == 0
+
+    '''
+    Removes the execute permission from the file.
+    '''
+    def undoExecutable(self):
+        status = spc.call(['chmod', 'a-x', self.path])
         return status == 0
 
     def execute(self):

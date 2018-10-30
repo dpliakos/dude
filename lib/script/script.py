@@ -3,6 +3,8 @@ from ..utils.file import File
 from ..utils.directory import Directory
 
 class Script():
+
+    # REVIEW: consider add variables as parameter at the constructor.
     def __init__(self, name, basepath, basetarget):
         self.basepath = basepath
 
@@ -27,8 +29,6 @@ class Script():
 
         if not exists:
             raise Exception()
-
-
 
     def createTempCopy(self):
         success = self.file.copy(self.tmpPath)
